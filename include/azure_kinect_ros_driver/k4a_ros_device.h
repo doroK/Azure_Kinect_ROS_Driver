@@ -24,6 +24,9 @@
 #include <k4a/k4a.hpp>
 #include <k4arecord/playback.hpp>
 
+#include <tf/transform_broadcaster.h>
+#include <sstream>
+
 #if defined(K4A_BODY_TRACKING)
 #include <visualization_msgs/MarkerArray.h>
 #include <k4abt.hpp>
@@ -139,6 +142,8 @@ class K4AROSDevice
   ros::Publisher body_marker_publisher_;
 
   image_transport::Publisher body_index_map_publisher_;
+
+  tf::TransformBroadcaster* tf_broadcaster_;
 #endif
 
   // Parameters

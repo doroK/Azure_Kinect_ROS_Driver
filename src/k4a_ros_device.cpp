@@ -243,6 +243,8 @@ K4AROSDevice::K4AROSDevice(const NodeHandle& n, const NodeHandle& p)
     body_marker_publisher_ = node_.advertise<MarkerArray>("body_tracking_data", 1);
 
     body_index_map_publisher_ = image_transport_.advertise("body_index_map/image_raw", 1);
+
+    tf_broadcaster_ = new tf::TransformBroadcaster();
   }
 #endif
 }
@@ -738,6 +740,18 @@ k4a_result_t K4AROSDevice::getBodyMarker(const k4abt_body_t& body, MarkerPtr mar
   marker_msg->pose.orientation.x = orientation.wxyz.x;
   marker_msg->pose.orientation.y = orientation.wxyz.y;
   marker_msg->pose.orientation.z = orientation.wxyz.z;
+
+  std::cout << "joint type" << jointType << std::endl;
+
+  tf::Transform transform;
+  transform.setOrigin( tf::Vector3(marker_msg->pose.position.x, marker_msg->pose.position.y, marker_msg->pose.position.z) );
+  tf::Quaternion q( marker_msg->pose.orientation.x, marker_msg->pose.orientation.y, marker_msg->pose.orientation.z, marker_msg->pose.orientation.w);
+  transform.setRotation(q);
+
+  std::ostringstream ss;
+  ss << body.id << "_" << jointType;
+  tf_broadcaster_->sendTransform(tf::StampedTransform(transform, ros::Time::now(), calibration_data_.tf_prefix_ + calibration_data_.depth_camera_frame_, ss.str()));
+
 
   return K4A_RESULT_SUCCEEDED;
 }
