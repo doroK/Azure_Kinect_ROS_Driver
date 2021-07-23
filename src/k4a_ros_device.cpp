@@ -749,7 +749,7 @@ k4a_result_t K4AROSDevice::getBodyMarker(const k4abt_body_t& body, MarkerPtr mar
   transform.setRotation(q);
 
   std::ostringstream ss;
-  ss << body.id << "_" << jointType;
+  ss << body.id << "_" << jointNames[jointType];
   tf_broadcaster_->sendTransform(tf::StampedTransform(transform, ros::Time::now(), calibration_data_.tf_prefix_ + calibration_data_.depth_camera_frame_, ss.str()));
 
 
