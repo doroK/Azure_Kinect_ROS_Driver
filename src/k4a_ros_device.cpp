@@ -741,8 +741,6 @@ k4a_result_t K4AROSDevice::getBodyMarker(const k4abt_body_t& body, MarkerPtr mar
   marker_msg->pose.orientation.y = orientation.wxyz.y;
   marker_msg->pose.orientation.z = orientation.wxyz.z;
 
-  std::cout << "joint type" << jointType << std::endl;
-
   tf::Transform transform;
   transform.setOrigin( tf::Vector3(marker_msg->pose.position.x, marker_msg->pose.position.y, marker_msg->pose.position.z) );
   tf::Quaternion q( marker_msg->pose.orientation.x, marker_msg->pose.orientation.y, marker_msg->pose.orientation.z, marker_msg->pose.orientation.w);
