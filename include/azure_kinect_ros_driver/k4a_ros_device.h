@@ -112,6 +112,43 @@ class K4AROSDevice
   // When using IMU throttling, computes a mean measurement from a set of IMU samples
   k4a_imu_sample_t computeMeanIMUSample(const std::vector<k4a_imu_sample_t>& samples);
 
+  // TF joint naming
+  // Reference: https://docs.microsoft.com/en-us/azure/kinect-dk/body-joints
+  const std::string jointNames[32] = {
+    "pelvis",
+    "spine_naval",
+    "spine_chest",
+    "neck",
+    "clavicle_left",
+    "shoulder_left",
+    "elbow_left",
+    "wrist_left",
+    "hand_left",
+    "handtip_left",
+    "thumb_left",
+    "clavicle_right",
+    "shoulder_right",
+    "elbow_right",
+    "wrist_right",
+    "hand_right",
+    "handtip_right",
+    "thumb_right",
+    "hip_left",
+    "knee_left",
+    "ankle_left",
+    "foot_left",
+    "hip_right",
+    "knee_right",
+    "ankle_right",
+    "foot_right",
+    "head",
+    "nose",
+    "eye_left",
+    "ear_left",
+    "eye_right",
+    "ear_right"
+  };
+
   // ROS Node variables
   ros::NodeHandle node_;
   ros::NodeHandle private_node_;

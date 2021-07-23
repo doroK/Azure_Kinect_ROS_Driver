@@ -741,15 +741,13 @@ k4a_result_t K4AROSDevice::getBodyMarker(const k4abt_body_t& body, MarkerPtr mar
   marker_msg->pose.orientation.y = orientation.wxyz.y;
   marker_msg->pose.orientation.z = orientation.wxyz.z;
 
-  std::cout << "joint type" << jointType << std::endl;
-
   tf::Transform transform;
   transform.setOrigin( tf::Vector3(marker_msg->pose.position.x, marker_msg->pose.position.y, marker_msg->pose.position.z) );
   tf::Quaternion q( marker_msg->pose.orientation.x, marker_msg->pose.orientation.y, marker_msg->pose.orientation.z, marker_msg->pose.orientation.w);
   transform.setRotation(q);
 
   std::ostringstream ss;
-  ss << body.id << "_" << jointType;
+  ss << body.id << "_" << jointNames[jointType];
   tf_broadcaster_->sendTransform(tf::StampedTransform(transform, ros::Time::now(), calibration_data_.tf_prefix_ + calibration_data_.depth_camera_frame_, ss.str()));
 
 
