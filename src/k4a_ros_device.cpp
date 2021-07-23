@@ -986,8 +986,8 @@ void K4AROSDevice::framePublisherThread()
 
 #if defined(K4A_BODY_TRACKING)
         // Publish body markers when body tracking is enabled and a depth image is available
-        if (params_.body_tracking_enabled &&
-            (body_marker_publisher_.getNumSubscribers() > 0 || body_index_map_publisher_.getNumSubscribers() > 0))
+        if (params_.body_tracking_enabled) //&&
+            //(body_marker_publisher_.getNumSubscribers() > 0 || body_index_map_publisher_.getNumSubscribers() > 0))
         {
           capture_time = timestampToROS(capture.get_depth_image().get_device_timestamp());
 
@@ -1008,23 +1008,23 @@ void K4AROSDevice::framePublisherThread()
             }
             else
             {
-              if (body_marker_publisher_.getNumSubscribers() > 0)
+              //if (body_marker_publisher_.getNumSubscribers() > 0)
+              //{
+              // Joint marker array
+              MarkerArrayPtr markerArrayPtr(new MarkerArray);
+              auto num_bodies = body_frame.get_num_bodies();
+              for (size_t i = 0; i < num_bodies; ++i)
               {
-                // Joint marker array
-                MarkerArrayPtr markerArrayPtr(new MarkerArray);
-                auto num_bodies = body_frame.get_num_bodies();
-                for (size_t i = 0; i < num_bodies; ++i)
+                k4abt_body_t body = body_frame.get_body(i);
+                for (int j = 0; j < (int) K4ABT_JOINT_COUNT; ++j)
                 {
-                  k4abt_body_t body = body_frame.get_body(i);
-                  for (int j = 0; j < (int) K4ABT_JOINT_COUNT; ++j)
-                  {
-                    MarkerPtr markerPtr(new Marker);
-                    getBodyMarker(body, markerPtr, j, capture_time);
-                    markerArrayPtr->markers.push_back(*markerPtr);
-                  }
+                  MarkerPtr markerPtr(new Marker);
+                  getBodyMarker(body, markerPtr, j, capture_time);
+                  markerArrayPtr->markers.push_back(*markerPtr);
                 }
-                body_marker_publisher_.publish(markerArrayPtr);
               }
+              body_marker_publisher_.publish(markerArrayPtr);
+              //}
 
               if (body_index_map_publisher_.getNumSubscribers() > 0)
               {
