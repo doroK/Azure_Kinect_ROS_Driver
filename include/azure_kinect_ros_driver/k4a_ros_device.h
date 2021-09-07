@@ -27,7 +27,6 @@
 #include <tf/transform_broadcaster.h>
 #include <sstream>
 
-#define K4A_BODY_TRACKING
 #if defined(K4A_BODY_TRACKING)
 #include <visualization_msgs/MarkerArray.h>
 #include <kobo_interaction_msgs/PixelSkeleton.h>
