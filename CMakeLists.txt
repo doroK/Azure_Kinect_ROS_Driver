@@ -22,6 +22,7 @@ find_package(catkin REQUIRED COMPONENTS
   nodelet
   cv_bridge
   tf
+  kobo_interaction_msgs
 )
 
 ###################################

@@ -17,6 +17,8 @@
 #include <sensor_msgs/distortion_models.h>
 #include <sensor_msgs/image_encodings.h>
 #include <sensor_msgs/point_cloud2_iterator.h>
+#include <kobo_interaction_msgs/Pixel.h>
+#include <kobo_interaction_msgs/PixelSkeleton.h>
 #include <k4a/k4a.hpp>
 
 // Project headers
@@ -241,6 +243,7 @@ K4AROSDevice::K4AROSDevice(const NodeHandle& n, const NodeHandle& p)
 #if defined(K4A_BODY_TRACKING)
   if (params_.body_tracking_enabled) {
     body_marker_publisher_ = node_.advertise<MarkerArray>("body_tracking_data", 1);
+    pixel_publisher = node_.advertise<kobo_interaction_msgs::PixelSkeleton>("pixel_skeleton", 1);
 
     body_index_map_publisher_ = image_transport_.advertise("body_index_map/image_raw", 1);
 
@@ -804,6 +807,56 @@ k4a_result_t K4AROSDevice::renderBodyIndexMapToROS(sensor_msgs::ImagePtr body_in
 
   return K4A_RESULT_SUCCEEDED;
 }
+
+k4a_result_t setPixelFromMarker(kobo_interaction_msgs::PixelSkeleton &pixel_skeleton, const visualization_msgs::MarkerPtr marker_msg, int jointType)
+{
+  kobo_interaction_msgs::Pixel pixel;
+  pixel.x = marker_msg->pose.position.x;
+  pixel.y = marker_msg->pose.position.y;
+
+  switch(jointType) {
+    case 3:
+      pixel_skeleton.neck = pixel;
+    case 5:
+      pixel_skeleton.left_shoulder = pixel;
+    case 6:
+      pixel_skeleton.left_elbow = pixel;
+    case 7:
+      pixel_skeleton.left_wrist = pixel;
+    case 12:
+      pixel_skeleton.right_shoulder = pixel;
+    case 13:
+      pixel_skeleton.right_elbow = pixel;
+    case 14:
+      pixel_skeleton.right_wrist = pixel;
+    case 18:
+      pixel_skeleton.left_hip = pixel;
+    case 19:
+      pixel_skeleton.left_knee = pixel;
+    case 20:
+      pixel_skeleton.left_ankle = pixel;
+    case 22:
+      pixel_skeleton.right_hip = pixel;
+    case 23:
+      pixel_skeleton.right_knee = pixel;
+    case 24:
+      pixel_skeleton.right_ankle = pixel;
+    case 27:
+      pixel_skeleton.nose = pixel;
+    case 28:
+      pixel_skeleton.left_eye = pixel;
+    case 29:
+      pixel_skeleton.left_ear = pixel;
+    case 30:
+      pixel_skeleton.right_eye = pixel;
+    case 31:
+      pixel_skeleton.right_ear = pixel;
+    default:
+      break;
+  }
+
+  return K4A_RESULT_SUCCEEDED;
+}
 #endif
 
 void K4AROSDevice::framePublisherThread()
@@ -1016,12 +1069,17 @@ void K4AROSDevice::framePublisherThread()
               for (size_t i = 0; i < num_bodies; ++i)
               {
                 k4abt_body_t body = body_frame.get_body(i);
+                kobo_interaction_msgs::PixelSkeleton pixel_skeleton;
                 for (int j = 0; j < (int) K4ABT_JOINT_COUNT; ++j)
                 {
                   MarkerPtr markerPtr(new Marker);
                   getBodyMarker(body, markerPtr, j, capture_time);
+                  setPixelFromMarker(pixel_skeleton, markerPtr, j);
                   markerArrayPtr->markers.push_back(*markerPtr);
                 }
+                // Publish 2D skeleton
+                pixel_skeleton.identity = body.id;
+                pixel_publisher.publish(pixel_skeleton);
               }
               body_marker_publisher_.publish(markerArrayPtr);
               //}
