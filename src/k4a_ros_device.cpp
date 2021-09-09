@@ -19,6 +19,9 @@
 #include <sensor_msgs/point_cloud2_iterator.h>
 #include <kobo_interaction_msgs/Pixel.h>
 #include <kobo_interaction_msgs/PixelSkeleton.h>
+#include <kobo_interaction_msgs/Skeleton3D.h>
+#include <kobo_interaction_msgs/SkeletonList.h>
+#include <geometry_msgs/PointStamped.h>
 #include <k4a/k4a.hpp>
 
 // Project headers
@@ -243,6 +246,7 @@ K4AROSDevice::K4AROSDevice(const NodeHandle& n, const NodeHandle& p)
 #if defined(K4A_BODY_TRACKING)
   if (params_.body_tracking_enabled) {
     body_marker_publisher_ = node_.advertise<MarkerArray>("body_tracking_data", 1);
+    skeleton_publisher_ = node_.advertise<kobo_interaction_msgs::SkeletonList>("skeleton3D_data", 1);
     pixel_publisher = node_.advertise<kobo_interaction_msgs::PixelSkeleton>("pixel_skeleton", 1);
 
     body_index_map_publisher_ = image_transport_.advertise("body_index_map/image_raw", 1);
@@ -808,11 +812,7 @@ k4a_result_t K4AROSDevice::renderBodyIndexMapToROS(sensor_msgs::ImagePtr body_in
   return K4A_RESULT_SUCCEEDED;
 }
 
-void K4AROSDevice::publishProjectedImage(){
-    std::cout<<"Publishing image!!!!!!!!!!!!"<<std::endl;
-}
-
-k4a_result_t K4AROSDevice::setPixelFromMarker(kobo_interaction_msgs::PixelSkeleton &pixel_skeleton, const visualization_msgs::MarkerPtr marker_msg, int jointType)
+k4a_result_t setPixelFromMarker(kobo_interaction_msgs::PixelSkeleton &pixel_skeleton, const visualization_msgs::MarkerPtr marker_msg, int jointType)
 {
   kobo_interaction_msgs::Pixel pixel;
   pixel.x = marker_msg->pose.position.x;
@@ -1069,24 +1069,35 @@ void K4AROSDevice::framePublisherThread()
               //{
               // Joint marker array
               MarkerArrayPtr markerArrayPtr(new MarkerArray);
+              kobo_interaction_msgs::SkeletonList skeletonList;
               auto num_bodies = body_frame.get_num_bodies();
               for (size_t i = 0; i < num_bodies; ++i)
               {
+                kobo_interaction_msgs::Skeleton3D skeleton;
                 k4abt_body_t body = body_frame.get_body(i);
+                skeleton.id = body.id;
                 kobo_interaction_msgs::PixelSkeleton pixel_skeleton;
                 for (int j = 0; j < (int) K4ABT_JOINT_COUNT; ++j)
                 {
                   MarkerPtr markerPtr(new Marker);
                   getBodyMarker(body, markerPtr, j, capture_time);
-                  publishProjectedImage();
-                  setPixelFromMarker(pixel_skeleton, markerPtr, j);
+                  //setPixelFromMarker(pixel_skeleton, markerPtr, j);
                   markerArrayPtr->markers.push_back(*markerPtr);
+
+                  geometry_msgs::PointStamped keypoint;
+                  keypoint.point.x = markerPtr->pose.position.x;
+                  keypoint.point.y = markerPtr->pose.position.y;
+                  keypoint.point.z = markerPtr->pose.position.z;
+                  skeleton.keypoints.push_back(keypoint);
+
                 }
+                skeletonList.skeletons.push_back(skeleton);
                 // Publish 2D skeleton
                 pixel_skeleton.identity = body.id;
                 pixel_publisher.publish(pixel_skeleton);
               }
               body_marker_publisher_.publish(markerArrayPtr);
+              skeleton_publisher_.publish(skeletonList);
               //}
 
               if (body_index_map_publisher_.getNumSubscribers() > 0)
