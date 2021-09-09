@@ -812,11 +812,13 @@ k4a_result_t K4AROSDevice::renderBodyIndexMapToROS(sensor_msgs::ImagePtr body_in
   return K4A_RESULT_SUCCEEDED;
 }
 
-k4a_result_t setPixelFromMarker(kobo_interaction_msgs::PixelSkeleton &pixel_skeleton, const visualization_msgs::MarkerPtr marker_msg, int jointType)
+k4a_result_t K4AROSDevice::setPixelFromMarker(kobo_interaction_msgs::PixelSkeleton &pixel_skeleton, const visualization_msgs::MarkerPtr marker_msg, int jointType)
 {
+  // Project with intrinsics
   kobo_interaction_msgs::Pixel pixel;
-  pixel.x = marker_msg->pose.position.x;
-  pixel.y = marker_msg->pose.position.y;
+  k4a_calibration_intrinsic_parameters_t* parameters = &calibration_data_.k4a_calibration_.color_camera_calibration.intrinsics.parameters;
+  pixel.x = (parameters->param.fx * marker_msg->pose.position.x + parameters->param.cx * marker_msg->pose.position.z) / marker_msg->pose.position.z;
+  pixel.y = (parameters->param.fy * marker_msg->pose.position.y + parameters->param.cy * marker_msg->pose.position.z) / marker_msg->pose.position.z;
 
   switch(jointType) {
     case 3:
