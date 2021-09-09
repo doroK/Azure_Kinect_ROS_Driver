@@ -808,7 +808,11 @@ k4a_result_t K4AROSDevice::renderBodyIndexMapToROS(sensor_msgs::ImagePtr body_in
   return K4A_RESULT_SUCCEEDED;
 }
 
-k4a_result_t setPixelFromMarker(kobo_interaction_msgs::PixelSkeleton &pixel_skeleton, const visualization_msgs::MarkerPtr marker_msg, int jointType)
+void K4AROSDevice::publishProjectedImage(){
+    std::cout<<"Publishing image!!!!!!!!!!!!"<<std::endl;
+}
+
+k4a_result_t K4AROSDevice::setPixelFromMarker(kobo_interaction_msgs::PixelSkeleton &pixel_skeleton, const visualization_msgs::MarkerPtr marker_msg, int jointType)
 {
   kobo_interaction_msgs::Pixel pixel;
   pixel.x = marker_msg->pose.position.x;
@@ -1074,6 +1078,7 @@ void K4AROSDevice::framePublisherThread()
                 {
                   MarkerPtr markerPtr(new Marker);
                   getBodyMarker(body, markerPtr, j, capture_time);
+                  publishProjectedImage();
                   setPixelFromMarker(pixel_skeleton, markerPtr, j);
                   markerArrayPtr->markers.push_back(*markerPtr);
                 }
