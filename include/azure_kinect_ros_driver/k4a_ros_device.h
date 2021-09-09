@@ -29,6 +29,7 @@
 
 #if defined(K4A_BODY_TRACKING)
 #include <visualization_msgs/MarkerArray.h>
+#include <kobo_interaction_msgs/PixelSkeleton.h>
 #include <k4abt.hpp>
 #endif
 
@@ -77,6 +78,9 @@ class K4AROSDevice
 
   k4a_result_t renderBodyIndexMapToROS(sensor_msgs::ImagePtr body_index_map_image, k4a::image& k4a_body_index_map,
                                        const k4abt::frame& body_frame);
+                                      
+  k4a_result_t setPixelFromMarker(kobo_interaction_msgs::PixelSkeleton &pixel_skeleton, const visualization_msgs::MarkerPtr marker_msg, 
+                                  int jointType);
 #endif
 
  private:
@@ -177,6 +181,7 @@ class K4AROSDevice
 
 #if defined(K4A_BODY_TRACKING)
   ros::Publisher body_marker_publisher_;
+  ros::Publisher pixel_publisher;
 
   image_transport::Publisher body_index_map_publisher_;
 
