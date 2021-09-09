@@ -812,7 +812,7 @@ k4a_result_t K4AROSDevice::renderBodyIndexMapToROS(sensor_msgs::ImagePtr body_in
   return K4A_RESULT_SUCCEEDED;
 }
 
-k4a_result_t setPixelFromMarker(kobo_interaction_msgs::PixelSkeleton &pixel_skeleton, const visualization_msgs::MarkerPtr marker_msg, int jointType)
+k4a_result_t K4AROSDevice::setPixelFromMarker(kobo_interaction_msgs::PixelSkeleton &pixel_skeleton, const visualization_msgs::MarkerPtr marker_msg, int jointType)
 {
   // Project with intrinsics
   kobo_interaction_msgs::Pixel pixel;
