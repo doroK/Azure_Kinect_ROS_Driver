@@ -247,7 +247,7 @@ K4AROSDevice::K4AROSDevice(const NodeHandle& n, const NodeHandle& p)
   if (params_.body_tracking_enabled) {
     body_marker_publisher_ = node_.advertise<MarkerArray>("body_tracking_data", 1);
     skeleton_publisher_ = node_.advertise<kobo_interaction_msgs::SkeletonList>("skeleton3D_data", 1);
-    pixel_publisher = node_.advertise<kobo_interaction_msgs::PixelSkeleton>("pixel_skeleton", 1);
+    pixel_publisher = node_.advertise<kobo_interaction_msgs::PixelSkeleton>("skeleton_tracker/pixel_skeleton", 1);
 
     body_index_map_publisher_ = image_transport_.advertise("body_index_map/image_raw", 1);
 
@@ -812,11 +812,14 @@ k4a_result_t K4AROSDevice::renderBodyIndexMapToROS(sensor_msgs::ImagePtr body_in
   return K4A_RESULT_SUCCEEDED;
 }
 
-k4a_result_t setPixelFromMarker(kobo_interaction_msgs::PixelSkeleton &pixel_skeleton, const visualization_msgs::MarkerPtr marker_msg, int jointType)
+k4a_result_t K4AROSDevice::setPixelFromMarker(kobo_interaction_msgs::PixelSkeleton &pixel_skeleton, const visualization_msgs::MarkerPtr marker_msg, int jointType)
 {
+  // Project with intrinsics
   kobo_interaction_msgs::Pixel pixel;
-  pixel.x = marker_msg->pose.position.x;
-  pixel.y = marker_msg->pose.position.y;
+  k4a_calibration_intrinsic_parameters_t* parameters = &calibration_data_.k4a_calibration_.color_camera_calibration.intrinsics.parameters;
+  pixel.x = (parameters->param.fx * marker_msg->pose.position.x + parameters->param.cx * marker_msg->pose.position.z) / marker_msg->pose.position.z;
+  pixel.y = (parameters->param.fy * marker_msg->pose.position.y + parameters->param.cy * marker_msg->pose.position.z) / marker_msg->pose.position.z;
+
 
   switch(jointType) {
     case 3:
@@ -1081,7 +1084,7 @@ void K4AROSDevice::framePublisherThread()
                 {
                   MarkerPtr markerPtr(new Marker);
                   getBodyMarker(body, markerPtr, j, capture_time);
-                  //setPixelFromMarker(pixel_skeleton, markerPtr, j);
+                  setPixelFromMarker(pixel_skeleton, markerPtr, j);
                   markerArrayPtr->markers.push_back(*markerPtr);
 
                   geometry_msgs::PointStamped keypoint;
